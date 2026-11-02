@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiz Maker — Admin & Student</title>
+<style>
+:root{--bg:#080d19;--panel:#101a2c;--panel2:#15223a;--line:#243754;--text:#e8f1ff;--muted:#91a6c4;--cyan:#27d8f2;--blue:#477cff;--red:#ff536d;--green:#40e0a0}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:radial-gradient(ellipse at 12% 0%,#142c4c 0,transparent 38%),var(--bg);color:var(--text);min-height:100vh}
+header{background:linear-gradient(115deg,#111d32,#0b1425);border-bottom:1px solid var(--line);padding:22px clamp(16px,4vw,44px);position:relative;overflow:hidden}
+header:after{content:"";position:absolute;right:6%;top:-55px;width:190px;height:190px;border:1px solid #27d8f233;border-radius:50%;box-shadow:0 0 0 24px #27d8f20b,0 0 0 48px #27d8f208;pointer-events:none}
+header h1{margin:0;font-size:clamp(22px,4vw,30px);letter-spacing:.4px}
+header h1:before{content:"";display:inline-block;width:9px;height:9px;background:var(--cyan);box-shadow:0 0 14px var(--cyan);margin-right:12px;vertical-align:middle}
+header p{color:var(--muted);margin:8px 0 0;font-size:14px}
+.wrap{max-width:1200px;margin:30px auto;padding:0 16px 0 240px;display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
+.tabs{display:flex;flex-direction:column;gap:9px;margin:0;position:fixed;left:18px;top:150px;width:204px;padding:12px;background:linear-gradient(145deg,#111d31,#0d1728);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px #0003;z-index:20}
+.tabs .tab{text-align:left;width:100%;padding:13px 14px}
+.wrap>section{grid-column:1;grid-row:auto}
+button{border:1px solid #3c65a5;border-radius:8px;padding:11px 15px;background:linear-gradient(135deg,#3869dc,#5146d8);color:white;cursor:pointer;font-weight:700;letter-spacing:.2px;transition:.18s}
+button:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.tab{background:#111c30;color:#a9bdd9;border-color:var(--line)}
+.tab.active{background:#13354a;color:var(--cyan);border-color:#1d9eb8;box-shadow:inset 0 0 16px #27d8f20b}
+.panel,.card{background:linear-gradient(145deg,#111d31,#0d1728);border:1px solid var(--line);border-radius:14px;padding:clamp(15px,3vw,24px);margin-bottom:16px;box-shadow:0 14px 40px #0003}
+h2{margin:0 0 16px;font-size:22px;letter-spacing:.2px}
+h2:after{content:"";display:block;width:44px;height:2px;background:var(--cyan);margin-top:10px;box-shadow:0 0 9px #27d8f288}
+label{display:block;font-weight:700;color:#c6d8f1;margin:13px 0 7px;font-size:13px}
+input,textarea,select{width:100%;padding:12px 13px;background:#091323;border:1px solid #2b4162;border-radius:8px;color:var(--text);font:inherit;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px #27d8f21a}
+textarea{min-height:78px;resize:vertical}
+.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
+.question{border:1px solid #263b59;border-left:3px solid #477cff;border-radius:10px;padding:15px;margin:13px 0;background:#0b1526}
+.question h3{margin:0;color:#eaf3ff;font-size:16px}.qhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.qhead .qsummary{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.qhead .collapseQuestion{padding:7px 11px;white-space:nowrap}.question.collapsed{padding-bottom:12px}.question.collapsed .questionBody{display:none}.question.collapsed .qhead{margin-bottom:0}
+.muted{color:var(--muted);font-size:13px;line-height:1.5}
+.danger{background:linear-gradient(135deg,#a92e4a,#d94358);border-color:#e25c72}
+.secondary{background:#17243a;color:#b9cbe5;border-color:#2c4262}
+.choice{display:flex;gap:9px;align-items:center;margin:9px 0;padding:8px 10px;background:#0a1424;border:1px solid #1d304b;border-radius:7px}
+.choice input{width:auto;accent-color:var(--cyan)}.choice label{font-weight:400;margin:0;color:#d4e1f3}
+.hidden{display:none!important}
+.notice{padding:13px;background:#302713;border:1px solid #66501e;border-radius:8px;color:#f4d58a;font-size:13px;line-height:1.5}
+.success{padding:14px;background:#102e2b;border:1px solid #247b68;border-radius:9px;color:#7ef0c4}
+.warning{padding:13px;background:#351725;border:1px solid #b63b59;color:#ff9bad;border-radius:9px;font-weight:700;box-shadow:0 0 16px #ff536d12}
+#finishedList .question{border-left-color:var(--green)}
+#studentLogin{max-width:560px;margin:auto}
+#studentLogin h2{text-align:center}
+#studentLogin .muted{text-align:center}
+#studentLogin button{width:100%;margin-top:12px}
+#warningBox{margin:14px 0}
+::placeholder{color:#617590}
+@media(max-width:700px){.wrap{grid-template-columns:1fr;margin:18px auto;gap:14px;padding:0 12px}.tabs{position:sticky;left:auto;top:8px;width:100%;flex-direction:row;flex-wrap:wrap;z-index:20}.tabs button{flex:1;min-width:105px;text-align:center;padding:11px 8px}.wrap>section{grid-column:1;grid-row:auto}.row{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<header><h1>📝 Quiz Maker</h1><p>Admin manages quizzes. Students join with a quiz code.</p><p style="font-size:11px;color:#27d8f2;letter-spacing:1.4px;margin-top:12px">● SYSTEM ONLINE &nbsp; / &nbsp; QUIZ CONTROL PANEL</p></header>
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab active" data-tab="student">Student Login</button>
+    <button class="tab" data-tab="admin">Admin Account</button>
+    <button class="tab" data-tab="finished">Finished Area</button>
+  </div>
+
+  <section id="student" class="panel">
+    <div id="studentLogin">
+      <h2>Student Login</h2>
+      <p class="muted">Enter your details before joining. Your section/group will be attached to your submission for easier analysis.</p>
+      <label>Quiz code</label><input id="quizCode" placeholder="Example: ABC123">
+      <label>Your name</label><input id="studentName" placeholder="Enter your name">
+      <label>Choose your Section / Group (required)</label>
+      <select id="studentGroup">
+        <option value="">-- Select your section / group --</option>
+        <option value="Section A">Section A</option><option value="Section B">Section B</option>
+        <option value="Section C">Section C</option><option value="Section D">Section D</option>
+        <option value="Group 1">Group 1</option><option value="Group 2">Group 2</option>
+        <option value="Group 3">Group 3</option><option value="Group 4">Group 4</option>
+        <option value="custom">My section/group is not listed</option>
+      </select>
+      <div id="customGroupWrap" class="hidden"><label>Type your Section / Group</label><input id="customGroup" placeholder="Example: Grade 11 - STEM A" autocomplete="organization"></div>
+      <button id="joinBtn" style="margin-top:12px">Join Quiz</button>
+      <p id="joinMessage" class="muted"></p>
+    </div>
+    <div id="quizStage" class="hidden"></div>
+  </section>
+
+  <section id="admin" class="panel hidden">
+    <h2>Admin Account</h2>
+    <div id="adminLogin">
+      <h3>Teacher Login</h3>
+      <label>Teacher username</label><input id="adminUser" placeholder="Enter username">
+      <label>Password</label><input id="adminPass" type="password" placeholder="Enter password">
+      <button id="adminLoginBtn" style="margin-top:12px">Login</button>
+      <p id="adminMessage" class="muted"></p>
+    </div>
+    <div id="adminTools" class="hidden">
+      <p class="success">Signed in as teacher: <b id="activeTeacher"></b>. Your quizzes and results are kept separate from other teacher accounts in this browser.</p>
+      <details class="panel" style="margin:16px 0;padding:14px">
+        <summary style="cursor:pointer;font-weight:700">Admin tools · Create Teacher Account</summary>
+        <p class="muted">Create a separate teacher login here. This account-creation section is hidden from the student login screen.</p>
+        <label>New username</label><input id="newAdminUser" placeholder="Create username">
+        <label>New password</label><input id="newAdminPass" type="password" placeholder="Create password">
+        <button id="createAdminBtn" class="secondary" style="margin-top:12px">Create Teacher Account</button>
+        <p id="createAdminMessage" class="muted"></p>
+        <p class="notice">Demo version: accounts are stored in this browser only. A public website needs secure server authentication.</p>
+      </details>
+      <details class="panel" style="margin:16px 0;padding:14px" open>
+        <summary style="cursor:pointer;font-weight:700">Manage Section / Group Names</summary>
+        <p class="muted">Add, rename, or remove the section names students can choose at login.</p>
+        <div class="row"><input id="newSectionName" placeholder="New section/group name"><button id="addSectionName" class="secondary" type="button">Add Name</button></div>
+        <div id="sectionNameList"></div><p id="sectionNameMessage" class="muted"></p>
+      </details>
+      <label>Quiz title</label><input id="quizTitle" placeholder="Quiz title">
+      <label>Student quiz code</label><input id="adminQuizCode" placeholder="Example: ABC123">
+      <label>Quiz deadline (date and time)</label><input id="quizDeadline" type="datetime-local">
+      <p class="muted">Students cannot start after the deadline. Active quizzes will automatically submit when time runs out. Leave blank for no deadline.</p>
+      <div class="row" style="margin-top:12px">
+        <button id="addQuestion">+ Add Question</button><button id="saveQuiz">Save Quiz</button>
+      </div>
+      <div id="editor"></div>
+      <p id="saveMessage" class="muted"></p>
+      <button id="adminLogout" class="secondary">Logout</button>
+    </div>
+  </section>
+
+  <section id="finished" class="panel hidden">
+    <h2>Finished Area</h2>
+    <p class="muted">Admin-only submissions and answer keys. Use the section/group filter to analyze students separately.</p>
+    <label for="groupFilter">Filter by Section / Group</label><select id="groupFilter"><option value="all">All sections / groups</option></select>
+    <div id="finishedList">Login as admin to view submissions.</div>
+  </section>
+</div>
+
+<script>
+/* DEMO ONLY: use a real authenticated backend for production. */
+const DEFAULT_ADMIN_USERNAME="admin";
+const DEFAULT_ADMIN_PASSWORD="admin123";
+const DEFAULT_QUIZ={
+  title:"Sample Quiz",code:"ABC123",deadline:"",questions:[
+    {type:"multiple",text:"What is the capital of the Philippines?",choices:["Manila","Cebu","Davao","Baguio"],answer:"A"},
+    {type:"identification",text:"What process do plants use to make food?",answer:"photosynthesis"},
+    {type:"enumeration",text:"Name two colors in the Philippine flag.",answer:"blue, red"}
+  ]
+};
+function read(key,fallback){try{return JSON.parse(localStorage.getItem(key))||structuredClone(fallback)}catch(e){return structuredClone(fallback)}}
+let accounts=read("qmAdminAccounts",[{username:DEFAULT_ADMIN_USERNAME,password:DEFAULT_ADMIN_PASSWORD}]);
+let currentAdmin=null;
+let quiz=structuredClone(DEFAULT_QUIZ), submissions=[];
+let adminOn=false, active=false, warningCount=0, answers=[], studentName="", studentGroup="", quizFinished=false, monitoring=false, deadlineTimer=null;
+let sectionNames=read("qmSectionNames",["Section A","Section B","Section C","Section D","Group 1","Group 2","Group 3","Group 4"]);
+function saveSectionNames(){localStorage.setItem("qmSectionNames",JSON.stringify(sectionNames));renderSectionNames();populateStudentGroups();}
+function populateStudentGroups(){const sel=$("studentGroup"),prev=sel.value;sel.innerHTML='<option value="">-- Select your section / group --</option>'+sectionNames.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')+'<option value="custom">My section/group is not listed</option>';if(sectionNames.includes(prev)||prev==="custom")sel.value=prev;}
+function renderSectionNames(){const host=$("sectionNameList");if(!host)return;host.innerHTML=sectionNames.map((n,i)=>`<div class="row" style="margin-top:8px"><span style="flex:1">${esc(n)}</span><button type="button" class="secondary" onclick="renameSectionName(${i})">Edit</button><button type="button" class="danger" onclick="deleteSectionName(${i})">Delete</button></div>`).join("")||'<p class="muted">No section names yet.</p>';}
+function renameSectionName(i){const next=prompt("Edit section/group name:",sectionNames[i]);if(next===null)return;const name=next.trim();if(!name){$("sectionNameMessage").textContent="Name cannot be blank.";return}if(sectionNames.some((n,j)=>j!==i&&n.toLowerCase()===name.toLowerCase())){$("sectionNameMessage").textContent="That name already exists.";return}sectionNames[i]=name;saveSectionNames();$("sectionNameMessage").textContent="Section name updated.";}
+function deleteSectionName(i){if(!confirm(`Delete “${sectionNames[i]}” from the choices? Existing submissions remain unchanged.`))return;sectionNames.splice(i,1);saveSectionNames();$("sectionNameMessage").textContent="Section name deleted.";}
+const $=id=>document.getElementById(id);
+function accountKey(kind){return "qm_"+kind+"_"+(currentAdmin||"default")}
+function save(){
+ if(!currentAdmin)return;
+ localStorage.setItem(accountKey("quiz"),JSON.stringify(quiz));
+ localStorage.setItem(accountKey("subs"),JSON.stringify(submissions));
+}
+function loadTeacherWorkspace(username){
+ currentAdmin=username;
+ quiz=read(accountKey("quiz"),DEFAULT_QUIZ);
+ submissions=read(accountKey("subs"),[]);
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function tab(name){
+  document.querySelectorAll("section").forEach(s=>s.classList.toggle("hidden",s.id!==name));
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));
+  if(name==="finished")renderFinished();
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+$("groupFilter").onchange=()=>renderFinished();
+populateStudentGroups();
+$("addSectionName").onclick=()=>{const name=$("newSectionName").value.trim();if(!name){$("sectionNameMessage").textContent="Enter a section/group name.";return}if(sectionNames.some(n=>n.toLowerCase()===name.toLowerCase())){$("sectionNameMessage").textContent="That name already exists.";return}sectionNames.push(name);sectionNames.sort((a,b)=>a.localeCompare(b));$("newSectionName").value="";saveSectionNames();$("sectionNameMessage").textContent="Section name added.";};
+$("studentGroup").onchange=()=>{
+  $("customGroupWrap").classList.toggle("hidden",$("studentGroup").value!=="custom");
+};
+
+$("adminLoginBtn").onclick=()=>{
+  const username=$("adminUser").value.trim(),password=$("adminPass").value;
+  const account=accounts.find(a=>a.username.toLowerCase()===username.toLowerCase()&&a.password===password);
+  if(account){
+    loadTeacherWorkspace(account.username);
+    adminOn=true;$("adminLogin").classList.add("hidden");$("adminTools").classList.remove("hidden");
+    $("adminMessage").textContent="";
+    $("activeTeacher").textContent=currentAdmin;
+    renderEditor();renderFinished();renderSectionNames();populateStudentGroups();
+  }else $("adminMessage").textContent="Incorrect username or password.";
+};
+$("createAdminBtn").onclick=()=>{
+  const username=$("newAdminUser").value.trim(),password=$("newAdminPass").value;
+  if(username.length<3){$("createAdminMessage").textContent="Username must be at least 3 characters.";return}
+  if(password.length<6){$("createAdminMessage").textContent="Password must be at least 6 characters.";return}
+  if(accounts.some(a=>a.username.toLowerCase()===username.toLowerCase())){$("createAdminMessage").textContent="That username already exists.";return}
+  accounts.push({username,password});
+  localStorage.setItem("qmAdminAccounts",JSON.stringify(accounts));
+  $("createAdminMessage").textContent="Teacher account created. You can now log in.";
+  $("adminUser").value=username;$("adminPass").value=password;
+  $("newAdminUser").value="";$("newAdminPass").value="";
+};
+$("adminLogout").onclick=()=>{
+  adminOn=false;currentAdmin=null;$("adminLogin").classList.remove("hidden");$("adminTools").classList.add("hidden");
+  $("adminUser").value="";$("adminPass").value="";tab("student");
+};
+$("addQuestion").onclick=()=>{if(adminOn){quiz.questions.push({type:"identification",text:"",answer:""});renderEditor()}};
+$("saveQuiz").onclick=()=>{
+  if(!adminOn)return;
+  quiz.title=$("quizTitle").value.trim()||"Untitled Quiz";
+  quiz.code=$("adminQuizCode").value.trim().toUpperCase()||"ABC123";
+  quiz.deadline=$("quizDeadline").value||"";
+  document.querySelectorAll(".question[data-index]").forEach(card=>{
+    const q=quiz.questions[+card.dataset.index];q.type=card.querySelector(".qtype").value;
+    q.text=card.querySelector(".qtext").value.trim();
+    if(q.type==="multiple"){
+      q.choices=[...card.querySelectorAll(".choiceText")].map(x=>x.value.trim());
+      q.answer=card.querySelector(".correct").value;
+    }else q.answer=card.querySelector(".answer").value.trim();
+  });
+  save();renderEditor();$("saveMessage").textContent="Quiz saved. Share the quiz code with students.";
+};
+function renderEditor(){
+ if(!adminOn)return;
+ $("quizTitle").value=quiz.title;$("adminQuizCode").value=quiz.code;$("quizDeadline").value=quiz.deadline||"";
+ const host=$("editor");host.innerHTML="";
+ quiz.questions.forEach((q,i)=>{
+  const card=document.createElement("div");card.className="question";card.dataset.index=i;
+  card.innerHTML=`<div class="qhead"><h3>Question ${i+1}</h3><span class="qsummary">${esc((q.text||"No question text yet").slice(0,90))}</span><button type="button" class="secondary collapseQuestion">Minimize</button></div><div class="questionBody">
+   <label>Question type</label><select class="qtype">
+   <option value="identification" ${q.type==="identification"?"selected":""}>Identification</option>
+   <option value="enumeration" ${q.type==="enumeration"?"selected":""}>Enumeration</option>
+   <option value="multiple" ${q.type==="multiple"?"selected":""}>Multiple Choice</option></select>
+   <label>Question</label><textarea class="qtext">${esc(q.text)}</textarea>
+   <label>Question photo (optional)</label><input class="qimage" type="file" accept="image/*">
+   <div class="imagePreview">${q.image?`<img src="${q.image}" alt="Question image preview" style="max-width:100%;max-height:220px;border-radius:10px;margin-top:8px">`:""}</div>
+   <button type="button" class="secondary removeImage" style="margin-top:8px" ${q.image?"":"disabled"}>Remove photo</button>
+   <div class="fields"></div>
+   <button class="danger delete" style="margin-top:10px">Delete question</button></div>`;
+  host.appendChild(card);
+  const collapseBtn=card.querySelector(".collapseQuestion");
+  collapseBtn.onclick=()=>{card.classList.toggle("collapsed");collapseBtn.textContent=card.classList.contains("collapsed")?"Expand":"Minimize"};
+  card.querySelector(".qtext").addEventListener("input",e=>{card.querySelector(".qsummary").textContent=e.target.value.trim().slice(0,90)||"No question text yet"});
+  const type=card.querySelector(".qtype"),fields=card.querySelector(".fields");
+  function fieldsDraw(){
+   if(type.value==="multiple"){
+    const cs=q.choices||["","","",""];
+    fields.innerHTML="<label>Choices</label>"+cs.map((c,j)=>`<div class="choice"><span>${"ABCD"[j]}.</span><input class="choiceText" value="${esc(c)}" placeholder="Choice"></div>`).join("")+
+    `<label>Correct choice</label><select class="correct">${"ABCD".split("").map((letter,j)=>`<option value="${letter}" ${(q.answer===letter||q.answer===cs[j])?"selected":""}>${letter}</option>`).join("")}</select>`;
+   }else fields.innerHTML=`<label>Correct answer (admin only)</label><textarea class="answer">${esc(q.answer)}</textarea><p class="muted">For enumeration, separate answers with commas.</p>`;
+  }
+  type.onchange=()=>{q.type=type.value;fieldsDraw()};fieldsDraw();
+  const imageInput=card.querySelector(".qimage"),preview=card.querySelector(".imagePreview"),removeImage=card.querySelector(".removeImage");
+  imageInput.onchange=()=>{
+    const file=imageInput.files?.[0];if(!file)return;
+    if(!file.type.startsWith("image/")){alert("Please choose an image file.");imageInput.value="";return}
+    if(file.size>1500000){alert("Please choose an image smaller than 1.5 MB.");imageInput.value="";return}
+    const reader=new FileReader();
+    reader.onload=()=>{q.image=reader.result;preview.innerHTML=`<img src="${q.image}" alt="Question image preview" style="max-width:100%;max-height:220px;border-radius:10px;margin-top:8px">`;removeImage.disabled=false};
+    reader.readAsDataURL(file);
+  };
+  removeImage.onclick=()=>{q.image="";preview.innerHTML="";imageInput.value="";removeImage.disabled=true};
+  card.querySelector(".delete").onclick=()=>{quiz.questions.splice(i,1);renderEditor()};
+ });
+}
+$("joinBtn").onclick=()=>{
+ const code=$("quizCode").value.trim().toUpperCase(),name=$("studentName").value.trim(),group=$("studentGroup").value==="custom"?$("customGroup").value.trim():$("studentGroup").value.trim();
+ if(code!==quiz.code.toUpperCase()){$("joinMessage").textContent="Invalid quiz code.";return}
+ if(quiz.deadline && Date.now()>=new Date(quiz.deadline).getTime()){$("joinMessage").textContent="This quiz deadline has passed. You can no longer join.";return}
+ if(!name){$("joinMessage").textContent="Please enter your name.";return}
+ if(!group){$("joinMessage").textContent="Please enter your section or group.";return}
+ if(!quiz.questions.length){$("joinMessage").textContent="This quiz has no questions yet.";return}
+ studentName=name;studentGroup=group;warningCount=0;answers=quiz.questions.map(()=> "");quizFinished=false;active=true;
+ $("studentLogin").classList.add("hidden");renderQuiz();beginMonitor();
+ if(quiz.deadline){deadlineTimer=setInterval(()=>{if(active&&Date.now()>=new Date(quiz.deadline).getTime()){collectAnswers();finishQuiz("The quiz deadline was reached. Your answers were submitted automatically.");}},1000)}
+};
+function renderQuiz(){
+ const host=$("quizStage");host.classList.remove("hidden");
+ host.innerHTML=`<h2>${esc(quiz.title)}</h2>
+ <p class="muted">Student: ${esc(studentName)} • Section / Group: ${esc(studentGroup)}</p>
+ <div class="warning" id="warningBox">Warnings: 0 / 3</div>
+ <p class="muted">Stay on this quiz page. Leaving the page or switching away may give a warning.</p>
+ <form id="studentForm">${quiz.questions.map((q,i)=>`<div class="question"><h3>${i+1}. ${esc(q.text)}</h3>
+ ${q.image?`<img src="${q.image}" alt="Question ${i+1} photo" style="display:block;max-width:100%;max-height:320px;object-fit:contain;border-radius:12px;margin:10px 0">`:""}
+ ${q.type==="multiple"?(q.choices||[]).map((c,j)=>`<div class="choice"><input type="radio" name="q${i}" value="${"ABCD"[j]}" id="s${i}_${j}"><label for="s${i}_${j}">${"ABCD"[j]}. ${esc(c)}</label></div>`).join("")
+ :`<textarea name="q${i}" placeholder="${q.type==="enumeration"?"List your answers, separated by commas":"Your answer"}"></textarea>`}</div>`).join("")}
+ <button type="submit">Submit Quiz</button></form><div id="studentNotice"></div>`;
+ $("studentForm").onsubmit=e=>{e.preventDefault();if(quiz.deadline&&Date.now()>=new Date(quiz.deadline).getTime()){collectAnswers();finishQuiz("The quiz deadline was reached. Your answers were submitted.");return}collectAnswers();finishQuiz("Quiz submitted successfully.")};
+}
+function collectAnswers(){
+ quiz.questions.forEach((q,i)=>{
+  const form=$("studentForm"),el=form.elements["q"+i];
+  if(q.type==="multiple"){const selected=form.querySelector(`input[name="q${i}"]:checked`);answers[i]=selected?selected.value:""}
+  else answers[i]=el?el.value.trim():"";
+ });
+}
+function beginMonitor(){
+ if(monitoring)return;monitoring=true;
+ document.addEventListener("visibilitychange",()=>{
+  if(active&&!quizFinished&&document.hidden)addWarning("You switched away from the quiz.");
+ });
+ window.addEventListener("blur",()=>{
+  if(active&&!quizFinished)addWarning("The quiz window lost focus.");
+ });
+}
+let lastWarning=0;
+function addWarning(message){
+ if(!active||quizFinished)return;
+ const now=Date.now();if(now-lastWarning<1500)return;lastWarning=now;
+ warningCount++;
+ const box=$("warningBox");if(box)box.textContent=`Warning ${warningCount} / 3: ${message}`;
+ if(warningCount>3){collectAnswers();finishQuiz("Quiz automatically ended after more than 3 warnings.");}
+}
+function correct(a,q){
+ const norm=s=>String(s||"").trim().toLowerCase().replace(/\s+/g," ");
+ if(q.type==="multiple")return norm(a)===norm(q.answer);
+ if(q.type==="enumeration"){
+  const expected=String(q.answer||"").split(",").map(norm).filter(Boolean);
+  const given=String(a||"").split(",").map(norm).filter(Boolean);
+  return expected.length>0&&expected.every(x=>given.includes(x));
+ }
+ return norm(a)===norm(q.answer);
+}
+function finishQuiz(message){
+ if(quizFinished)return;quizFinished=true;active=false;
+ if(deadlineTimer){clearInterval(deadlineTimer);deadlineTimer=null}
+ const score=answers.reduce((n,a,i)=>n+(correct(a,quiz.questions[i])?1:0),0);
+ submissions.push({name:studentName,group:studentGroup||"Unassigned",title:quiz.title,questions:structuredClone(quiz.questions),answers:[...answers],score,total:quiz.questions.length,warnings:warningCount,date:new Date().toLocaleString(),ended:message});
+ save();
+ $("quizStage").innerHTML=`<div class="success"><h2>Quiz submitted!</h2><p>${esc(message)}</p><p><b>Student:</b> ${esc(studentName)}</p><p><b>Section / Group:</b> ${esc(studentGroup)}</p><p>Your answers have been submitted. Your score and answer key are hidden.</p><button type="button" id="backToLogin" class="secondary" style="margin-top:12px">Back to Student Login</button></div>`;
+ $("backToLogin").onclick=()=>{
+   $("quizStage").classList.add("hidden");$("studentLogin").classList.remove("hidden");
+   $("studentName").value="";$("studentGroup").value="";$("customGroup").value="";$("customGroupWrap").classList.add("hidden");$("quizCode").value="";
+ };
+}
+function renderFinished(){
+ const host=$("finishedList");
+ if(!adminOn){host.textContent="Login as admin to view submissions.";return}
+ const filter=$("groupFilter");
+ const groups=[...new Set(submissions.map(s=>s.group||"Unassigned"))].sort((a,b)=>a.localeCompare(b));
+ const current=filter.value||"all";
+ filter.innerHTML='<option value="all">All sections / groups</option>'+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
+ filter.value=groups.includes(current)?current:"all";
+ if(!submissions.length){host.innerHTML="<p>No finished submissions yet.</p>";return}
+ const selected=submissions.map((s,i)=>({...s,_index:i})).filter(s=>filter.value==="all"||(s.group||"Unassigned")===filter.value);
+ if(!selected.length){host.innerHTML="<p>No submissions for this section/group.</p>";return}
+ const byGroup={};selected.forEach(s=>{const g=s.group||"Unassigned";(byGroup[g] ||= []).push(s)});
+ host.innerHTML=Object.entries(byGroup).map(([group,list])=>{
+  const avg=list.reduce((sum,s)=>sum+(s.total?s.score/s.total*100:0),0)/list.length;
+  return `<div class="panel"><h2>${esc(group)}</h2><p class="muted">${list.length} student submission(s) • Average score: ${avg.toFixed(1)}%</p>`+
+   list.map(s=>`<div class="question"><h3>${esc(s.name)} — ${s.score}/${s.total}</h3><p class="muted">${esc(s.title)} • ${esc(s.date)} • Warnings: ${s.warnings}</p><p class="muted">${esc(s.ended)}</p>`+
+   (s.answers||[]).map((a,j)=>`<p><b>Q${j+1}:</b> ${esc(s.questions?.[j]?.text||"Question")}<br><b>Student answer:</b> ${esc(a||"(blank)")}<br><b>Correct answer:</b> ${esc(s.questions?.[j]?.type==="multiple"?(s.questions?.[j]?.choices?.["ABCD".indexOf(s.questions?.[j]?.answer)]||s.questions?.[j]?.answer):s.questions?.[j]?.answer||"")}</p>`).join("")+
+   `<button class="danger" onclick="removeSubmission(${s._index})">Delete submission</button></div>`).join("")+`</div>`;
+ }).join("")+`<button class="danger" onclick="removeAll()">Clear all submissions</button>`;
+}
+function removeSubmission(i){if(adminOn){submissions.splice(i,1);save();renderFinished()}}
+function removeAll(){if(adminOn&&confirm("Delete all submissions?")){submissions=[];save();renderFinished()}}
+</script>
+</body>
+</html>
